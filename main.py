@@ -1,7 +1,7 @@
 import pygame
 from random import shuffle, randint
 
-from sorts import bubble_sort_iter, sort_by_choice_iter
+from sorts import *
 from utils import gradient_iter
 
 WIDTH = 720
@@ -25,11 +25,12 @@ count = 50
 
 colors = list(gradient_iter((255, 126, 65), (56, 155, 255), count))
 
-a = pygame.time.set_timer(pygame.USEREVENT, 10)
+a = pygame.time.set_timer(pygame.USEREVENT, 20)
 array = [((i + 1) * 7, colors[i]) for i in range(count)]
 shuffle(array)
-it = bubble_sort_iter(array)
-#it = sort_by_choice_iter(array, )
+it = bubble_sort_iter(array, func=lambda x: x[0])
+it = sort_by_choice_iter(array, func=lambda x: x[0])
+it = insertion_sort_iter(array, func=lambda x: x[0])
 
 running = True
 while running:
@@ -41,7 +42,7 @@ while running:
             running = False
         elif event.type == pygame.USEREVENT:
             try:
-                next(it)
+                array = next(it)
             except StopIteration:
                 pass
 
