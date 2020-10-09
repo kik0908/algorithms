@@ -85,7 +85,7 @@ def __hoare_partition_iter(array, low, high, func):
     i = low - 1
     j = high + 1
 
-    while (True):
+    while True:
         i += 1
         while func(array[i]) < pivot:
             i += 1
@@ -100,7 +100,7 @@ def __hoare_partition_iter(array, low, high, func):
 
 
 def hoare_quickSort_iter(array, low, high, func=lambda x: x):
-    if (low < high):
+    if low < high:
         try:
             i = __hoare_partition_iter(array, low, high, func=lambda x: x)
             while True:
@@ -118,13 +118,4 @@ def hoare_quickSort_iter(array, low, high, func=lambda x: x):
 
 
 if __name__ == "__main__":
-    arr = list(range(1, 15))
-    shuffle(arr)
-    print(arr)
-    n = len(arr)
-    a = quickSort_iter(arr, 0, n - 1)
-    try:
-        while True:
-            print(next(a))
-    except StopIteration:
-        pass
+    pass

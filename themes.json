@@ -5,7 +5,7 @@
       "normal_border": "#000000"
     },
     "misc": {
-      "shape":"rectangle",
+      "shape": "rectangle",
       "border_width": "0",
       "shadow_width": "0",
       "list_item_height": "30"
@@ -16,6 +16,40 @@
       "border_width": "1",
       "shadow_width": "3",
       "list_item_height": "20"
+    }
+  },
+  "#finished": {
+    "colours": {
+      "dark_bg": "#000000",
+      "normal_text": "#00a550",
+      "text_shadow": "#AAAAAA"
+    },
+    "misc": {
+      "text_shadow": "0",
+      "text_shadow_size": "0",
+      "text_shadow_offset": "0,0"
+    }
+  },
+  "#in_process": {
+    "colours": {
+      "dark_bg": "#000000",
+      "normal_text": "#ffd800",
+      "text_shadow": "#AAAAAA"
+    },
+    "misc": {
+      "text_shadow": "0",
+      "text_shadow_size": "0",
+      "text_shadow_offset": "0,0"
+    }
+  },
+  "#just_text": {
+    "colours": {
+      "dark_bg": "#000000"
+    },
+    "misc": {
+      "text_shadow": "0",
+      "text_shadow_size": "0",
+      "text_shadow_offset": "0,0"
     }
   }
 }
