@@ -1,0 +1,21 @@
+{
+  "selection_list": {
+    "colours": {
+      "dark_bg": "#21282D",
+      "normal_border": "#000000"
+    },
+    "misc": {
+      "shape":"rectangle",
+      "border_width": "0",
+      "shadow_width": "0",
+      "list_item_height": "30"
+    }
+  },
+  "selection_list.@selection_list_item": {
+    "misc": {
+      "border_width": "1",
+      "shadow_width": "3",
+      "list_item_height": "20"
+    }
+  }
+}
