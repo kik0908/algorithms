@@ -96,14 +96,18 @@ while running:
         elif event.type == TIMER_EVENT:
             if event.timer_id == 'sort':
                 try:
+                    s_t = pygame.time.get_ticks()
                     array = next(it)
+                    all_time += pygame.time.get_ticks() - s_t
                 except StopIteration:
                     timer_manager.delete_timer('sort')
                     status_label_ok.visible = True
                     status_label_in_process.visible = False
+                    status_label_ok.set_text(f"Finished in about {all_time / 1000}s")
 
         elif event.type == pygame.USEREVENT:
             if event.user_type == pygame_gui.UI_SELECTION_LIST_NEW_SELECTION:
+
                 timer_manager.delete_timer('sort')
                 delay = sorts[event.text][1]
                 if text_line_delay.get_text().isdigit() is True:
@@ -115,6 +119,16 @@ while running:
                 status_label_in_process.visible = True
                 animation_label.visible = True
                 animation_label.set_text(f"Animation delay is {delay}")
+
+                all_time = 0
+
+            elif event.user_type == pygame_gui.UI_TEXT_ENTRY_FINISHED:
+                timer: timers.Timer = timer_manager['sort']
+                if timer is not None:
+                    if text_line_delay.get_text().isdigit() is True:
+                        delay = int(text_line_delay.get_text())
+                        timer.new_delay(delay)
+                        animation_label.set_text(f"Animation delay is {delay}")
 
         gui_manager.process_events(event)
 

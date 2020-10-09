@@ -35,6 +35,9 @@ class TimerManager:
             del self.timers[id]
             self.count -= 1
 
+    def __getitem__(self, id):
+        return self.timers.get(id, None)
+
 
 class Timer:
     def __init__(self, timer_manager, event, delay, id=None, once=False):
@@ -57,3 +60,6 @@ class Timer:
 
     def delete(self):
         self.for_del = True
+
+    def new_delay(self, new_delay):
+        self.delay = new_delay
