@@ -2,6 +2,7 @@ from random import shuffle, choice
 
 
 def bubble_sort_iter(array: list, func=lambda x: x):
+    print('12')
     array_len = len(array)
     iterations = 0
     for i in range(array_len):
