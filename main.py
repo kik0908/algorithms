@@ -31,7 +31,8 @@ sorts = {'Bubble sort': ('1', 20),
          "Sort by choice": ('2', 1),
          "Insertion sort": ('3', 20),
          "Lomuto`s quickSort": ('4', 20),
-         "Hoare`s quickSort": ('5', 20)}
+         "Hoare`s quickSort": ('5', 20),
+         "Merge sort": ('6', 20)}
 
 selector = pygame_gui.elements.ui_selection_list.UISelectionList(
     pygame.Rect((730, 0), (250, 30 * len(list(sorts.keys())))),
@@ -72,7 +73,8 @@ def init_sorting(type, delay=20):
                '2': sort_by_choice_iter(array, func=lambda x: x[0]),
                '3': insertion_sort_iter(array, func=lambda x: x[0]),
                '4': lomuto_quickSort_iter(array, 0, len(array) - 1, func=lambda x: x[0]),
-               '5': hoare_quickSort_iter(array, 0, len(array) - 1, func=lambda x: x[0])}
+               '5': hoare_quickSort_iter(array, 0, len(array) - 1, func=lambda x: x[0]),
+               '6': merge_sort_iter(array, func=lambda x: x[0])}
 
     it = sorting[sorts[type][0]]
 
@@ -91,7 +93,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            print(event.pos)
+            print(event.pos)    
 
         elif event.type == TIMER_EVENT:
             if event.timer_id == 'sort':

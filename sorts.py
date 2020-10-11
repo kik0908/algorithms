@@ -117,5 +117,33 @@ def hoare_quickSort_iter(array, low, high, func=lambda x: x):
         yield from hoare_quickSort_iter(array, pi + 1, high, func=lambda x: x)
 
 
+def merge_sort_iter(data: list, func=lambda x: x):
+    if len(data) > 2:
+        part_1 = next(merge_sort_iter(data[:len(data) // 2]))
+        part_2 = next(merge_sort_iter(data[len(data) // 2:]))
+        data = part_1 + part_2
+        yield data
+        last_index = len(data) - 1
+
+        for i in range(last_index):
+            min_value = func(data[i])
+            min_index = i
+
+            for j in range(i + 1, last_index + 1):
+                if min_value > func(data[j]):
+                    min_value = func(data[j])
+                    min_index = j
+
+            if min_index != i:
+                data[i], data[min_index] = data[min_index], data[i]
+                yield data
+
+    elif len(data) > 1 and func(data[0]) > func(data[1]):
+        data[0], data[1] = data[1], data[0]
+        yield data
+
+    yield data
+
+
 if __name__ == "__main__":
     pass
