@@ -1,5 +1,7 @@
 import pygame
 
+pygame.init()
+
 
 class TimerManager:
     def __init__(self):
@@ -63,3 +65,15 @@ class Timer:
 
     def new_delay(self, new_delay):
         self.delay = new_delay
+
+
+class TimerTime:
+    def __init__(self, time):
+        self.time = time
+        self.start_time = pygame.time.get_ticks()
+
+    def check(self):
+        if pygame.time.get_ticks() - self.start_time > self.time:
+            return True
+
+        return False

@@ -7,9 +7,11 @@ from sorts import *
 from utils import gradient_iter
 import timers
 
-WIDTH = 1000
+WIDTH = 1200
 HEIGHT = 480
 FPS = 6000
+
+GUI_WIDTH = 250
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -28,53 +30,61 @@ pygame.display.set_caption("A")
 clock = pygame.time.Clock()
 
 sorts = {'Bubble sort': ('1', 20),
-         "Sort by choice": ('2', 1),
-         "Insertion sort": ('3', 20),
-         "Lomuto`s quickSort": ('4', 20),
-         "Hoare`s quickSort": ('5', 20),
-         "Merge sort": ('6', 20)}
+         "Sort by choice": ('2', 20),
+         "Sort by double choice": ('3', 20),
+         "Insertion sort": ('4', 20),
+         "Lomuto`s quickSort": ('5', 20),
+         "Hoare`s quickSort": ('6', 20),
+         "Merge sort": ('7', 20),
+         "Cocktail sort": ('8', 20)}
 
 selector = pygame_gui.elements.ui_selection_list.UISelectionList(
-    pygame.Rect((730, 0), (250, 30 * len(list(sorts.keys())))),
+    pygame.Rect((WIDTH-GUI_WIDTH, 0), (GUI_WIDTH, 30 * len(list(sorts.keys())))),
     list(sorts.keys()),
     gui_manager, allow_double_clicks=False)
 
-animation_label = pygame_gui.elements.ui_label.UILabel(pygame.Rect((730, 440), (250, 30)),
+animation_label = pygame_gui.elements.ui_label.UILabel(pygame.Rect((WIDTH-GUI_WIDTH, 440), (GUI_WIDTH, 30)),
                                                        "Animation delay is",
                                                        gui_manager, object_id="#just_text")
-status_label_ok = pygame_gui.elements.ui_label.UILabel(pygame.Rect((730, 405), (250, 30)),
+status_label_ok = pygame_gui.elements.ui_label.UILabel(pygame.Rect((WIDTH-GUI_WIDTH, 405), (GUI_WIDTH, 30)),
                                                        "Finished",
                                                        gui_manager, object_id='#finished')
-status_label_in_process = pygame_gui.elements.ui_label.UILabel(pygame.Rect((730, 405), (250, 30)),
+status_label_in_process = pygame_gui.elements.ui_label.UILabel(pygame.Rect((WIDTH-GUI_WIDTH, 405), (GUI_WIDTH, 30)),
                                                                "In process",
                                                                gui_manager, object_id='#in_process')
 status_label_ok.visible = False
 status_label_in_process.visible = False
 animation_label.visible = False
 
-text_line_delay = pygame_gui.elements.ui_text_entry_line.UITextEntryLine(pygame.Rect((730, 190), (250, 30)),
+text_line_delay = pygame_gui.elements.ui_text_entry_line.UITextEntryLine(pygame.Rect((WIDTH-GUI_WIDTH, 30 * len(list(sorts.keys()))+10), (GUI_WIDTH, 30)),
                                                                          gui_manager)
 
-count = 90
+count = 450
+element_h = 1
+
+steps_for_skip = 5
 
 color_min, color_max = (0, 127, 255), (204, 255, 51)
 colors = list(gradient_iter(color_min, color_max, count))
 
-array = [((i + 1) * 5, colors[i]) for i in range(count)]
+array = [((i + 1) * element_h, colors[i]) for i in range(count)]
 
 
 def init_sorting(type, delay=20):
     timer = timers.Timer(timer_manager, pygame.event.Event(TIMER_EVENT, {'timer_id': 'sort'}), delay, id='sort')
 
-    array = [((i + 1) * 5, colors[i]) for i in range(count)]
+    array = [((i + 1) * element_h, colors[i]) for i in range(count)]
     shuffle(array)
+    func_for_sort = lambda x: x[0]
 
-    sorting = {'1': bubble_sort_iter(array, func=lambda x: x[0]),
-               '2': sort_by_choice_iter(array, func=lambda x: x[0]),
-               '3': insertion_sort_iter(array, func=lambda x: x[0]),
-               '4': lomuto_quickSort_iter(array, 0, len(array) - 1, func=lambda x: x[0]),
-               '5': hoare_quickSort_iter(array, 0, len(array) - 1, func=lambda x: x[0]),
-               '6': merge_sort_iter(array, func=lambda x: x[0])}
+    sorting = {'1': bubble_sort_iter(array, func=func_for_sort),
+               '2': sort_by_choice_iter(array, func=func_for_sort),
+               '3': double_selection_sort_iter(array, func=func_for_sort),
+               '4': insertion_sort_iter(array, func=func_for_sort),
+               '5': lomuto_quickSort_iter(array, func=func_for_sort),
+               '6': hoare_quickSort_iter(array, func=func_for_sort),
+               '7': merge_sort_iter(array, func=func_for_sort),
+               '8': cocktail_sort_iter(array, func=func_for_sort)}
 
     it = sorting[sorts[type][0]]
 
@@ -82,6 +92,7 @@ def init_sorting(type, delay=20):
 
 
 it = None
+delay = 0
 
 running = True
 while running:
@@ -93,14 +104,20 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            print(event.pos)    
+            print(event.pos)
 
         elif event.type == TIMER_EVENT:
             if event.timer_id == 'sort':
                 try:
-                    s_t = pygame.time.get_ticks()
-                    array = next(it)
-                    all_time += pygame.time.get_ticks() - s_t
+                    if delay < 0:
+                        for i in range(abs(delay)*steps_for_skip):
+                            s_t = pygame.time.get_ticks()
+                            array = next(it)
+                            all_time += pygame.time.get_ticks() - s_t
+                    else:
+                        s_t = pygame.time.get_ticks()
+                        array = next(it)
+                        all_time += pygame.time.get_ticks() - s_t
                 except StopIteration:
                     timer_manager.delete_timer('sort')
                     status_label_ok.visible = True
@@ -112,7 +129,7 @@ while running:
 
                 timer_manager.delete_timer('sort')
                 delay = sorts[event.text][1]
-                if text_line_delay.get_text().isdigit() is True:
+                if text_line_delay.get_text().replace('-', '').isdigit() is True:
                     delay = int(text_line_delay.get_text())
                 else:
                     text_line_delay.set_text(str(delay))
@@ -127,7 +144,7 @@ while running:
             elif event.user_type == pygame_gui.UI_TEXT_ENTRY_FINISHED:
                 timer: timers.Timer = timer_manager['sort']
                 if timer is not None:
-                    if text_line_delay.get_text().isdigit() is True:
+                    if text_line_delay.get_text().replace('-', '').isdigit() is True:
                         delay = int(text_line_delay.get_text())
                         timer.new_delay(delay)
                         animation_label.set_text(f"Animation delay is {delay}")
@@ -137,7 +154,7 @@ while running:
     gui_manager.update(time_delta)
     gui_manager.draw_ui(screen)
 
-    s = 8
+    s = 2
     for ind, i in enumerate(array):
         pygame.draw.line(screen, i[1], (s + ind * s, HEIGHT), (s + ind * s, HEIGHT - i[0]), s - 1)
 
