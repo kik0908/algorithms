@@ -6,10 +6,10 @@ def bubble_sort_iter(array: list, func=lambda x: x):
     iterations = 0
     for i in range(array_len):
         for j in range(0, array_len - i - 1):
-            yield array
             iterations += 1
             if func(array[j]) > func(array[j + 1]):
                 array[j], array[j + 1] = array[j + 1], array[j]
+                yield array
 
     yield array
     return iterations
@@ -21,12 +21,39 @@ def sort_by_choice_iter(array: list, func=lambda x: x):
     for i in range(array_len):
         ind_min = i
         for j in range(i, array_len):
-            yield array
             iterations += 1
             if func(array[j]) < func(array[ind_min]):
                 ind_min = j
 
         array[i], array[ind_min] = array[ind_min], array[i]
+        yield array
+
+    yield array
+    return iterations
+
+
+def double_selection_sort_iter(array: list, func=lambda x: x):
+    array_len = len(array)
+    c = 0
+    iterations = 0
+    for i in range(array_len//2):
+        ind_min = i
+        ind_max = i
+        for j in range(i, array_len-c):
+            iterations += 1
+            if func(array[j]) < func(array[ind_min]):
+                ind_min = j
+            if func(array[j]) > func(array[ind_max]):
+                ind_max = j
+
+        array[i], array[ind_min] = array[ind_min], array[i]
+        if ind_max == i:
+            ind_max = ind_min
+        array[array_len-c-1], array[ind_max] = array[ind_max], array[array_len-c-1]
+        c += 1
+        yield array
+
+
     yield array
     return iterations
 
@@ -37,10 +64,11 @@ def insertion_sort_iter(array, func=lambda x: x):
 
     for i in range(1, array_len):
         for j in range(i - 1, -1, -1):
-            yield array
+
             iterations += 1
             if func(array[i]) < func(array[j]):
                 array = array[:j] + [array[i]] + array[j:i] + array[i + 1:]
+                yield array
                 i -= 1
             else:
                 break
@@ -63,7 +91,10 @@ def __lomuto_partition_iter(arr, low, high, func):
     yield (i + 1)
 
 
-def lomuto_quickSort_iter(arr, low, high, func=lambda x: x):
+def lomuto_quickSort_iter(arr, low=0, high=None, func=lambda x: x):
+    if high is None:
+        high = len(arr)-1
+
     if (low < high):
 
         try:
@@ -99,7 +130,9 @@ def __hoare_partition_iter(array, low, high, func):
         yield array
 
 
-def hoare_quickSort_iter(array, low, high, func=lambda x: x):
+def hoare_quickSort_iter(array, low=0, high=None, func=lambda x: x):
+    if high is None:
+        high = len(array)-1
     if low < high:
         try:
             i = __hoare_partition_iter(array, low, high, func=lambda x: x)
@@ -144,6 +177,22 @@ def merge_sort_iter(data: list, func=lambda x: x):
 
     yield data
 
+
+def cocktail_sort_iter(array, func=lambda x: x[0]):
+    left = 0
+    right = len(array) - 1
+
+    while left <= right:
+        for i in range(left, right, +1):
+            if func(array[i]) > func(array[i + 1]):
+                array[i], array[i + 1] = array[i + 1], array[i]
+        right -= 1
+
+        for i in range(right, left, -1):
+            if func(array[i - 1]) > func(array[i]):
+                array[i], array[i - 1] = array[i - 1], array[i]
+        left += 1
+        yield array
 
 if __name__ == "__main__":
     pass
