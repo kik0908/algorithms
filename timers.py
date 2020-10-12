@@ -53,11 +53,13 @@ class Timer:
         timer_manager.add(self, id)
 
     def check(self):
-        if pygame.time.get_ticks() - self.last_time > self.delay:
-            self.last_time = pygame.time.get_ticks()
-            if self.once is True:
-                self.delete()
-            return True
+        if self.for_del is False:
+            if pygame.time.get_ticks() - self.last_time > self.delay:
+                self.last_time = pygame.time.get_ticks()
+                if self.once is True:
+                    self.delete()
+                return True
+            return False
         return False
 
     def delete(self):

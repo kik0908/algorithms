@@ -15,7 +15,8 @@ sorts = {'Bubble sort': ('1', 20),
          "Lomuto`s quickSort": ('5', 20),
          "Hoare`s quickSort": ('6', 20),
          "Merge sort": ('7', 20),
-         "Cocktail sort": ('8', 20)}
+         "Cocktail sort": ('8', 20),
+         "Main menu": ('mainMenu', 0)}
 
 main_menu_topic = {"Sorts": lambda: Sorting(SceneManager)}
 
@@ -43,7 +44,6 @@ class SceneManager:
         self.active_scene = scene
         if delete_last is True:
             del _
-
 
 
 class Scene:
@@ -91,6 +91,8 @@ class Sorting(Scene):
 
         self.array = [((i + 1) * self.element_h, self.colors[i]) for i in range(self.count)]
 
+        self.timer = None
+
         self.it = None
         self.delay = 0
 
@@ -126,6 +128,12 @@ class Sorting(Scene):
             [self.animation_label, self.status_label_ok, self.status_label_in_process, self.text_line_delay,
              self.selector])
 
+    def deactivate(self):
+        super(Sorting, self).deactivate()
+
+        if self.timer is not None:
+            self.timer.delete()
+
     def update(self):
         pass
 
@@ -151,6 +159,10 @@ class Sorting(Scene):
 
             elif event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_SELECTION_LIST_NEW_SELECTION:
+                    if event.text == 'Main menu':
+                        self.scene_manager.set_scene(MainMenu(self.scene_manager))
+                        return
+
                     timer_manager.delete_timer('sort')
                     self.delay = sorts[event.text][1]
                     if self.text_line_delay.get_text().replace('-', '').isdigit() is True:
@@ -180,7 +192,7 @@ class Sorting(Scene):
                 pygame.draw.line(screen, i[1], (s + ind * s, HEIGHT), (s + ind * s, HEIGHT - i[0]), s - 1)
 
     def init_sorting(self, type, delay=20):
-        timer = timers.Timer(timer_manager, pygame.event.Event(TIMER_EVENT, {'timer_id': 'sort'}), delay, id='sort')
+        self.timer = timers.Timer(timer_manager, pygame.event.Event(TIMER_EVENT, {'timer_id': 'sort'}), delay, id='sort')
 
         self.array = [((i + 1) * self.element_h, self.colors[i]) for i in range(self.count)]
         shuffle(self.array)
@@ -207,7 +219,7 @@ class MainMenu(Scene):
 
     def __init_gui(self):
         self.selector = pygame_gui.elements.ui_selection_list.UISelectionList(
-            pygame.Rect((WIDTH - GUI_WIDTH, 0), (GUI_WIDTH, min(30 * len(list(main_menu_topic.keys())), HEIGHT))),
+            pygame.Rect(((WIDTH - GUI_WIDTH)/2, (HEIGHT/10)), (GUI_WIDTH, min(30 * len(list(main_menu_topic.keys())), HEIGHT))),
             list(main_menu_topic.keys()),
             gui_manager, allow_double_clicks=False)
 
@@ -218,4 +230,4 @@ class MainMenu(Scene):
             if event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_SELECTION_LIST_NEW_SELECTION:
                     scene = event.text
-                    self.scene_manager.set_scene(main_menu_topic[scene]())
+                    self.scene_manager.set_scene(Sorting(self.scene_manager))
