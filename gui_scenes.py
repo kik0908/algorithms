@@ -1,10 +1,11 @@
-from random import shuffle
+from random import shuffle, randint
 
 import pygame
 import pygame_gui
 
 import timers
 from sorts import *
+from clustering import *
 from utils import gradient_iter
 from config import *
 
@@ -18,7 +19,11 @@ sorts = {'Bubble sort': ('1', 20),
          "Cocktail sort": ('8', 20),
          "Main menu": ('mainMenu', 0)}
 
-main_menu_topic = {"Sorts": lambda: Sorting(SceneManager)}
+main_menu_topic = {"Sorts": lambda x: Sorting(x),
+                   "Clustering": lambda x: Clustering(x)}
+
+clustering = {"K-means": ('1', 20),
+              "Main menu": ('mainMenu', 0)}
 
 
 class SceneManager:
@@ -51,6 +56,10 @@ class Scene:
         self.gui_elements = []
         self.is_active = True
         self.scene_manager = scene_manager
+        self._init_gui()
+
+    def _init_gui(self):
+        pass
 
     def update(self):
         pass
@@ -78,7 +87,6 @@ class Scene:
 class Sorting(Scene):
     def __init__(self, scene_manager):
         super(Sorting, self).__init__(scene_manager)
-        self.__init_gui()
         self.is_active = True
 
         self.count = 450
@@ -98,7 +106,7 @@ class Sorting(Scene):
 
         self.all_time = 0
 
-    def __init_gui(self):
+    def _init_gui(self):
         self.selector = pygame_gui.elements.ui_selection_list.UISelectionList(
             pygame.Rect((WIDTH - GUI_WIDTH, 0), (GUI_WIDTH, 30 * min(len(list(sorts.keys())), HEIGHT))),
             list(sorts.keys()),
@@ -192,7 +200,8 @@ class Sorting(Scene):
                 pygame.draw.line(screen, i[1], (s + ind * s, HEIGHT), (s + ind * s, HEIGHT - i[0]), s - 1)
 
     def init_sorting(self, type, delay=20):
-        self.timer = timers.Timer(timer_manager, pygame.event.Event(TIMER_EVENT, {'timer_id': 'sort'}), delay, id='sort')
+        self.timer = timers.Timer(timer_manager, pygame.event.Event(TIMER_EVENT, {'timer_id': 'sort'}), delay,
+                                  id='sort')
 
         self.array = [((i + 1) * self.element_h, self.colors[i]) for i in range(self.count)]
         shuffle(self.array)
@@ -212,14 +221,140 @@ class Sorting(Scene):
         return self.array, it
 
 
+class Clustering(Scene):
+    def __init__(self, scene_manager):
+        super(Clustering, self).__init__(scene_manager)
+
+        self.size_of_center = 13
+        self.size_of_circle = 4
+
+        self.centers = [[[randint(0, WIDTH - GUI_WIDTH), randint(0 + 10, HEIGHT - 10)], self.size_of_center,
+                         (randint(0, 255), randint(0, 255), randint(0, 255))] for i in
+                        range(3)]
+
+        self.points = [[[randint(0, WIDTH - GUI_WIDTH), randint(0 + 10, HEIGHT - 10)], self.size_of_circle, (255, 255, 255)] for i in
+                       range(55)]
+
+        self.it = None
+
+    def _init_gui(self):
+        self.selector = pygame_gui.elements.ui_selection_list.UISelectionList(
+            pygame.Rect((WIDTH - GUI_WIDTH, 0), (GUI_WIDTH, 30 * min(len(list(clustering.keys())), HEIGHT))),
+            list(clustering.keys()),
+            gui_manager, allow_double_clicks=False)
+
+        label1 = pygame_gui.elements.ui_label.UILabel(
+            pygame.Rect((WIDTH - GUI_WIDTH, 30 * len(list(clustering.keys())) + 10), (GUI_WIDTH, 30)),
+            "Count of centers",
+            gui_manager, )
+        label2 = pygame_gui.elements.ui_label.UILabel(
+            pygame.Rect((WIDTH - GUI_WIDTH, 30 * len(list(clustering.keys())) + 70), (GUI_WIDTH, 30)),
+            "Count of points",
+            gui_manager, )
+
+        self.text_line_count_centers = pygame_gui.elements.ui_text_entry_line.UITextEntryLine(
+            pygame.Rect((WIDTH - GUI_WIDTH, 30 * len(list(clustering.keys())) + 40), (GUI_WIDTH, 30)),
+            gui_manager, object_id='center_count')
+        self.text_line_count_points = pygame_gui.elements.ui_text_entry_line.UITextEntryLine(
+            pygame.Rect((WIDTH - GUI_WIDTH, 30 * len(list(clustering.keys())) + 100), (GUI_WIDTH, 30)),
+            gui_manager, object_id='point_count')
+
+        self.status_label_ok = pygame_gui.elements.ui_label.UILabel(
+            pygame.Rect((WIDTH - GUI_WIDTH, 405), (GUI_WIDTH, 30)),
+            "Finished",
+            gui_manager, object_id='#finished')
+        self.status_label_in_process = pygame_gui.elements.ui_label.UILabel(
+            pygame.Rect((WIDTH - GUI_WIDTH, 405), (GUI_WIDTH, 30)),
+            "In process",
+            gui_manager, object_id='#in_process')
+
+        self.status_label_ok.visible = False
+        self.status_label_in_process.visible = False
+
+        self.gui_elements.extend(
+            [self.selector, self.text_line_count_centers, self.text_line_count_points, self.status_label_ok,
+             self.status_label_in_process, label1, label2])
+
+    def deactivate(self):
+        super(Clustering, self).deactivate()
+        if self.timer is not None:
+            self.timer.delete()
+
+    def check_event(self, event):
+        if self.is_active is True:
+            if event.type == TIMER_EVENT:
+                if event.timer_id == 'clustering':
+                    try:
+                        if self.it is not None:
+                            self.points, self.centers = next(self.it)
+                    except StopIteration:
+                        timer_manager.delete_timer('clustering')
+                        self.status_label_in_process.visible = False
+                        self.status_label_ok.visible = True
+
+            elif event.type == pygame.USEREVENT:
+                if event.user_type == pygame_gui.UI_SELECTION_LIST_NEW_SELECTION:
+                    timer_manager.delete_timer('clustering')
+                    if event.text == 'Main menu':
+                        self.scene_manager.set_scene(MainMenu(self.scene_manager))
+                        return
+
+                    _point_count = 70
+                    _center_count = 5
+
+                    if self.text_line_count_points.get_text().isdigit():
+                        _point_count = int(self.text_line_count_points.get_text())
+
+                    if self.text_line_count_centers.get_text().isdigit():
+                        _center_count = int(self.text_line_count_centers.get_text())
+
+                    self.points, self.centers, self.it = self.init_cluster(event.text, _center_count, _point_count,
+                                                                           delay=300)
+
+                    self.status_label_in_process.visible = True
+                    self.status_label_ok.visible = False
+
+    def init_cluster(self, type, center_count=10, point_count=70, delay=20):
+        self.timer = timers.Timer(timer_manager, pygame.event.Event(TIMER_EVENT, {'timer_id': 'clustering'}), delay,
+                                  id='clustering')
+
+        self.centers = [[[randint(0, WIDTH - GUI_WIDTH), randint(0 + 10, HEIGHT - 10)], self.size_of_center,
+                         (randint(0, 255), randint(0, 255), randint(0, 255))] for i in
+                        range(center_count)]
+
+        self.points = [[[randint(0, WIDTH - GUI_WIDTH), randint(0 + 10, HEIGHT - 10)], self.size_of_circle, (255, 255, 255)] for i in
+                       range(point_count)]
+
+        clusters = {'1': lambda: k_mean_iter(self.points, self.centers)}
+
+        it = clusters[clustering[type][0]]()
+
+        return self.points, self.centers, it
+
+    def render(self, screen):
+        _colors = {}
+        for i in self.points:
+            pygame.draw.circle(screen, i[2], i[0], i[1])
+            _colors[i[2]] = _colors.get(i[2], []) + [i[0]]
+
+        for i in self.centers:
+            #pygame.draw.circle(screen, i[2], i[0], i[1])
+            _rect = pygame.rect.Rect(i[0], [i[1], i[1]])
+            _rect.center = i[0]
+
+            pygame.draw.rect(screen, i[2], _rect)
+            for j in _colors.get(i[2], []):
+                pygame.draw.line(screen, i[2], i[0], j, 1)
+
+
 class MainMenu(Scene):
     def __init__(self, scene_manager):
         super(MainMenu, self).__init__(scene_manager)
-        self.__init_gui()
 
-    def __init_gui(self):
+    def _init_gui(self):
         self.selector = pygame_gui.elements.ui_selection_list.UISelectionList(
-            pygame.Rect(((WIDTH - GUI_WIDTH)/2, (HEIGHT/10)), (GUI_WIDTH, min(30 * len(list(main_menu_topic.keys())), HEIGHT))),
+            pygame.Rect(((WIDTH - GUI_WIDTH) / 2, (HEIGHT / 10)),
+                        (GUI_WIDTH, min(30 * len(list(main_menu_topic.keys())), HEIGHT))),
             list(main_menu_topic.keys()),
             gui_manager, allow_double_clicks=False)
 
@@ -230,4 +365,4 @@ class MainMenu(Scene):
             if event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_SELECTION_LIST_NEW_SELECTION:
                     scene = event.text
-                    self.scene_manager.set_scene(Sorting(self.scene_manager))
+                    self.scene_manager.set_scene(main_menu_topic[scene](self.scene_manager))
