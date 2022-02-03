@@ -1,6 +1,5 @@
 from config import *
 from gui_scenes import Sorting, SceneManager
-
 scene = SceneManager()
 
 running = True

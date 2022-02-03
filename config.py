@@ -17,6 +17,8 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
 TIMER_EVENT = 26
+SORT_TIMER_EVENT = 24
+
 
 pygame.init()
 gui_manager = pygame_gui.UIManager((WIDTH, HEIGHT), './themes.json')

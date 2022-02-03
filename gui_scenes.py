@@ -148,22 +148,23 @@ class Sorting(Scene):
     def check_event(self, event):
         if self.is_active is True:
             if event.type == TIMER_EVENT:
-                if event.timer_id == 'sort':
-                    try:
-                        if self.delay < 0:
-                            for i in range(abs(self.delay) * self.steps_for_skip):
-                                s_t = pygame.time.get_ticks()
-                                self.array = next(self.it)
-                                self.all_time += pygame.time.get_ticks() - s_t
-                        else:
+                #print(id(event))
+                #if event.timer_id == 'sort':
+                try:
+                    if self.delay < 0:
+                        for i in range(abs(self.delay) * self.steps_for_skip):
                             s_t = pygame.time.get_ticks()
                             self.array = next(self.it)
                             self.all_time += pygame.time.get_ticks() - s_t
-                    except StopIteration:
-                        timer_manager.delete_timer('sort')
-                        self.status_label_ok.visible = True
-                        self.status_label_in_process.visible = False
-                        self.status_label_ok.set_text(f"Finished in about {self.all_time / 1000}s")
+                    else:
+                        s_t = pygame.time.get_ticks()
+                        self.array = next(self.it)
+                        self.all_time += pygame.time.get_ticks() - s_t
+                except StopIteration:
+                    timer_manager.delete_timer('sort')
+                    self.status_label_ok.visible = True
+                    self.status_label_in_process.visible = False
+                    self.status_label_ok.set_text(f"Finished in about {self.all_time / 1000}s")
 
             elif event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_SELECTION_LIST_NEW_SELECTION:
@@ -237,6 +238,9 @@ class Clustering(Scene):
 
         self.it = None
 
+        self.trash = 0
+
+
     def _init_gui(self):
         self.selector = pygame_gui.elements.ui_selection_list.UISelectionList(
             pygame.Rect((WIDTH - GUI_WIDTH, 0), (GUI_WIDTH, 30 * min(len(list(clustering.keys())), HEIGHT))),
@@ -283,14 +287,15 @@ class Clustering(Scene):
     def check_event(self, event):
         if self.is_active is True:
             if event.type == TIMER_EVENT:
-                if event.timer_id == 'clustering':
-                    try:
-                        if self.it is not None:
-                            self.points, self.centers = next(self.it)
-                    except StopIteration:
-                        timer_manager.delete_timer('clustering')
-                        self.status_label_in_process.visible = False
-                        self.status_label_ok.visible = True
+                #print('!!', event, id(event), dir(event))
+                #if event.timer_id == 'clustering':
+                try:
+                    if self.it is not None:
+                        self.points, self.centers = next(self.it)
+                except StopIteration:
+                    timer_manager.delete_timer('clustering')
+                    self.status_label_in_process.visible = False
+                    self.status_label_ok.visible = True
 
             elif event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_SELECTION_LIST_NEW_SELECTION:
